@@ -1,2 +1,3 @@
 # node_db
-express+mongoose
+
+学习 nodejs+express+mongoose 的使用
