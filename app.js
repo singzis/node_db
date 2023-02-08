@@ -18,12 +18,7 @@ const createUser = ({ name, age }) =>
 
 app.get('/', async (req, res) => {
   const { name } = req.query
-  let query
-  if (name) {
-    query = await User.find().where('name').in([name])
-  } else {
-    query = await User.find()
-  }
+  const query = await User.find(name ? { name } : {})
   res.send(query)
 })
 
@@ -45,7 +40,7 @@ app.put('/', async (req, res) => {
   if (!name) {
     res.send('需要name')
   }
-  const r = await User.where({'name': name}).update(newOp)
+  await User.where({ name }).update(newOp)
   res.send(`${name}完成更新，更新后为${newOp.name || name}`)
 })
 
