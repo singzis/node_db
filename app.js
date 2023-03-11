@@ -1,10 +1,12 @@
 const express = require('express')
 const { engine } = require('express-handlebars')
+const bodyParser = require('body-parser')
 const handlers = require('./lib/handlers')
 
 const app = express()
 
 app.use(express.static(__dirname + '/public'))
+app.use(bodyParser.urlencoded({ extended: true }))
 
 app.engine(
   'handlebars',
@@ -18,6 +20,12 @@ app.set('views', './views')
 app.get('/', handlers.home)
 
 app.get('/about', handlers.about)
+
+app.get('/newsletter-signup', handlers.newsletterSignup)
+
+app.get('/newsletter-signup/thank-you', handlers.newsletterSignupThankYou)
+
+app.post('/newsletter-signup/process', handlers.newsletterSignupProcess)
 
 app.use(handlers.notFound)
 
