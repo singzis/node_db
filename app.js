@@ -1,72 +1,49 @@
+const uri = require('./.credential.json').mongo.connectionString
+
 const express = require('express')
-const { engine } = require('express-handlebars')
-const handlers = require('./lib/handlers')
-const expressSession = require('express-session')
-const { credentials } = require('./config')
+const mongoose = require('mongoose')
+const PORT = 3000
 
 const app = express()
 
-app.use(express.static(__dirname + '/public'))
-app.engine('handlebars', engine({
-  defaultLayout: 'main',
-}) )
-app.set('view engine', 'handlebars')
-app.use(expressSession({
-  resave: false,
-  saveUninitialized: false,
-  secret: credentials.cookieSecret
-}))
+app.use(express.json())
 
-app.get('/', handlers.home)
+mongoose.connect(uri)
 
-app.get('/about', handlers.about)
-
-app.use(handlers.notFound)
-
-app.use(handlers.serverError)
-
-app.listen(3000, () => {
-  console.log('express started')
+const userSchema = new mongoose.Schema({
+  // 定义一个用户列表
+  account: String,
+  phone: String,
+  password: String,
 })
 
-// var createError = require('http-errors');
-// var path = require('path');
-// var cookieParser = require('cookie-parser');
-// var logger = require('morgan');
+const User = mongoose.model('User', userSchema, 'user')
 
-// var indexRouter = require('./routes/index');
-// var usersRouter = require('./routes/users');
+app.get('/api/user', async (req, res) => {
+  try {
+    const user = await User.find()
+    res.json({ data: user, status: res.statusCode })
+  } catch (e) {
+    res.status(500).json({ error: 'error' })
+  }
+})
 
-// var app = express();
+app.get('/api/a', (req, res) => {
+  res.send('111')
+})
 
-// // view engine setup
-// app.set('views', path.join(__dirname, 'views'));
-// app.set('view engine', 'jade');
+app.post('/api/insertUser', async (req, res) => {
+  try {
+    const { account, phone, password } = req.body
+    const user = new User({ account, phone, password })
+    await user.save()
 
-// app.use(logger('dev'));
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: false }));
-// app.use(cookieParser());
-// app.use('/p', express.static(path.join(__dirname, 'public')))
-// app.use(express.static(path.join(__dirname, 'files')))
+    res.status(200).json({ data: user, status: res.statusCode })
+  } catch (e) {
+    res.status(500).json({ error: 'error' })
+  }
+})
 
-// app.use('/', indexRouter);
-// app.use('/users', usersRouter);
-
-// // catch 404 and forward to error handler
-// app.use(function(req, res, next) {
-//   next(createError(404));
-// });
-
-// // error handler
-// app.use(function(err, req, res, next) {
-//   // set locals, only providing error in development
-//   res.locals.message = err.message;
-//   res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-//   // render the error page
-//   res.status(err.status || 500);
-//   res.render('error');
-// });
-
-// module.exports = app;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
